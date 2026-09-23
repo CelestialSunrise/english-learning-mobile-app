@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createClient } from '@supabase/supabase-js';
-import { VocabularyItem, QuizQuestion, ActiveTab, sharedStyles } from './types';
+import { VocabularyItem, QuizQuestion, PhraseItem, ActiveTab, sharedStyles } from './types';
 import VocabularyView from './VocabularyView';
+import PhrasesView from './PhrasesView';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -12,13 +13,19 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('vocab');
 
-  // Vocabulary State Hooks
+  // Vocabulary Tab State
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
   const [filteredVocab, setFilteredVocab] = useState<VocabularyItem[]>([]);
   const [loadingVocab, setLoadingVocab] = useState<boolean>(true);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [vocabSearch, setVocabSearch] = useState<string>('');
 
-  // Quiz State Hooks
+  // Phrases Tab State
+  const [phrases, setPhrases] = useState<PhraseItem[]>([]);
+  const [filteredPhrases, setFilteredPhrases] = useState<PhraseItem[]>([]);
+  const [loadingPhrases, setLoadingPhrases] = useState<boolean>(true);
+  const [phraseSearch, setPhraseSearch] = useState<string>('');
+
+  // Quiz Engine State
   const [quizPool, setQuizPool] = useState<QuizQuestion[]>([]);
   const [loadingQuiz, setLoadingQuiz] = useState<boolean>(false);
   const [currentIdx, setCurrentIdx] = useState<number>(0);
@@ -28,20 +35,28 @@ export default function App() {
   const [quizComplete, setQuizComplete] = useState<boolean>(false);
 
   useEffect(() => {
-    async function fetchWords() {
+    async function fetchAllData() {
       try {
-        const { data, error } = await supabase.from('vocabulary').select('*').order('word', { ascending: true });
-        if (error) throw error;
-        const typedData = (data as VocabularyItem[]) || [];
-        setVocabulary(typedData);
-        setFilteredVocab(typedData);
-      } catch (err: any) {
-        console.error('Database connection error:', err.message);
-      } finally {
+        const { data: vData, error: vError } = await supabase.from('vocabulary').select('*').order('word', { ascending: true });
+        if (vError) throw vError;
+        const typedVocab = (vData as VocabularyItem[]) || [];
+        setVocabulary(typedVocab);
+        setFilteredVocab(typedVocab);
         setLoadingVocab(false);
+
+        const { data: pData, error: pError } = await supabase.from('phrases').select('*').order('phrase', { ascending: true });
+        if (pError) throw pError;
+        const typedPhrases = (pData as PhraseItem[]) || [];
+        setPhrases(typedPhrases);
+        setFilteredPhrases(typedPhrases);
+        setLoadingPhrases(false);
+      } catch (err: any) {
+        console.error('Database connection exception:', err.message);
+        setLoadingVocab(false);
+        setLoadingPhrases(false);
       }
     }
-    fetchWords();
+    fetchAllData();
   }, []);
 
   const startNewQuiz = async () => {
@@ -61,7 +76,7 @@ export default function App() {
         prepareQuestionOptions(shuffledPool[0]);
       }
     } catch (err: any) {
-      console.error('Quiz data fetching error:', err.message);
+      console.error('Quiz initialization error:', err.message);
     } finally {
       setLoadingQuiz(false);
     }
@@ -95,12 +110,9 @@ export default function App() {
     }
   };
 
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-    if (!text.trim()) {
-      setFilteredVocab(vocabulary);
-      return;
-    }
+  const handleVocabSearch = (text: string) => {
+    setVocabSearch(text);
+    if (!text.trim()) { setFilteredVocab(vocabulary); return; }
     const filtered = vocabulary.filter(item => 
       item.word.toLowerCase().includes(text.toLowerCase()) ||
       item.definition.toLowerCase().includes(text.toLowerCase())
@@ -108,21 +120,40 @@ export default function App() {
     setFilteredVocab(filtered);
   };
 
+  const handlePhraseSearch = (text: string) => {
+    setPhraseSearch(text);
+    if (!text.trim()) { setFilteredPhrases(phrases); return; }
+    const filtered = phrases.filter(item => 
+      item.phrase.toLowerCase().includes(text.toLowerCase()) ||
+      item.meaning.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredPhrases(filtered);
+  };
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <View style={styles.navBar}>
           <TouchableOpacity style={[styles.navButton, activeTab === 'vocab' && styles.activeNavButton]} onPress={() => setActiveTab('vocab')}>
-            <Text style={[styles.navButtonText, activeTab === 'vocab' && styles.activeNavButtonText]}>📚 Directory</Text>
+            <Text style={[styles.navButtonText, activeTab === 'vocab' && styles.activeNavButtonText]}>📚 Vocab</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.navButton, activeTab === 'phrases' && styles.activeNavButton]} onPress={() => setActiveTab('phrases')}>
+            <Text style={[styles.navButtonText, activeTab === 'phrases' && styles.activeNavButtonText]}>💬 Phrases</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.navButton, activeTab === 'quiz' && styles.activeNavButton]} onPress={() => { setActiveTab('quiz'); if (quizPool.length === 0 || quizComplete) startNewQuiz(); }}>
-            <Text style={[styles.navButtonText, activeTab === 'quiz' && styles.activeNavButtonText]}>📝 Vocabulary Quiz</Text>
+            <Text style={[styles.navButtonText, activeTab === 'quiz' && styles.activeNavButtonText]}>📝 Quiz</Text>
           </TouchableOpacity>
         </View>
 
-        {activeTab === 'vocab' ? (
-          <VocabularyView loading={loadingVocab} searchQuery={searchQuery} filteredVocab={filteredVocab} onSearch={handleSearch} />
-        ) : (
+        {activeTab === 'vocab' && (
+          <VocabularyView loading={loadingVocab} searchQuery={vocabSearch} filteredVocab={filteredVocab} onSearch={handleVocabSearch} />
+        )}
+
+        {activeTab === 'phrases' && (
+          <PhrasesView loading={loadingPhrases} searchQuery={phraseSearch} filteredPhrases={filteredPhrases} onSearch={handlePhraseSearch} />
+        )}
+
+        {activeTab === 'quiz' && (
           <ScrollView contentContainerStyle={styles.quizContainer}>
             {loadingQuiz ? (
               <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 40 }} />

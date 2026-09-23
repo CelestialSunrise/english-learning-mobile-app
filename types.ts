@@ -1,6 +1,5 @@
 import { ViewStyle, TextStyle } from 'react-native';
 
-// Database Schema Interfaces
 export interface VocabularyItem {
   id: string;
   word: string;
@@ -19,15 +18,22 @@ export interface QuizQuestion {
   wrong_option_3: string;
 }
 
-export type ActiveTab = 'vocab' | 'quiz';
+export interface PhraseItem {
+  id: string;
+  phrase: string;
+  meaning: string;
+  context_use: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | string;
+}
 
-// Strict Shared Styles Blueprint
+export type ActiveTab = 'vocab' | 'quiz' | 'phrases';
+
 export const sharedStyles = {
   container: { flex: 1, backgroundColor: '#f8f9fa' } as ViewStyle,
   navBar: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#e1e4e8', backgroundColor: '#fff', marginBottom: 12 } as ViewStyle,
   navButton: { flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' } as ViewStyle,
   activeNavButton: { borderBottomColor: '#007bff' } as ViewStyle,
-  navButtonText: { fontSize: 16, fontWeight: '600', color: '#6a737d' } as TextStyle,
+  navButtonText: { fontSize: 13, fontWeight: '600', color: '#6a737d' } as TextStyle,
   activeNavButtonText: { color: '#007bff' } as TextStyle,
   searchBar: { height: 45, borderColor: '#ccc', borderWidth: 1, borderRadius: 8, marginHorizontal: 16, paddingHorizontal: 12, backgroundColor: '#fff', fontSize: 16, marginBottom: 12 } as ViewStyle,
   listContainer: { paddingHorizontal: 16, paddingBottom: 20 } as ViewStyle,

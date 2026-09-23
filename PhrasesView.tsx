@@ -1,16 +1,16 @@
 import React from 'react';
 import { StyleSheet, Text, View, FlatList, TextInput, ActivityIndicator, ViewStyle } from 'react-native';
-import { VocabularyItem, sharedStyles } from './types';
+import { PhraseItem, sharedStyles } from './types';
 
-interface VocabularyViewProps {
+interface PhrasesViewProps {
   loading: boolean;
   searchQuery: string;
-  filteredVocab: VocabularyItem[];
+  filteredPhrases: PhraseItem[];
   onSearch: (text: string) => void;
 }
 
-export default function VocabularyView({ loading, searchQuery, filteredVocab, onSearch }: VocabularyViewProps) {
-  const renderWordCard = ({ item }: { item: VocabularyItem }) => {
+export default function PhrasesView({ loading, searchQuery, filteredPhrases, onSearch }: PhrasesViewProps) {
+  const renderPhraseCard = ({ item }: { item: PhraseItem }) => {
     let badgeColorStyle: ViewStyle = styles.intermediate;
     if (item.difficulty.toLowerCase() === 'beginner') badgeColorStyle = styles.beginner;
     if (item.difficulty.toLowerCase() === 'advanced') badgeColorStyle = styles.advanced;
@@ -18,13 +18,13 @@ export default function VocabularyView({ loading, searchQuery, filteredVocab, on
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.wordText}>{item.word}</Text>
+          <Text style={styles.wordText}>{item.phrase}</Text>
           <View style={[styles.badge, badgeColorStyle]}>
             <Text style={styles.badgeText}>{item.difficulty}</Text>
           </View>
         </View>
-        <Text style={styles.definitionText}>{item.definition}</Text>
-        <Text style={styles.exampleText}>"{item.example_sentence}"</Text>
+        <Text style={styles.definitionText}>{item.meaning}</Text>
+        <Text style={styles.exampleText}>Context: {item.context_use}</Text>
       </View>
     );
   };
@@ -33,7 +33,7 @@ export default function VocabularyView({ loading, searchQuery, filteredVocab, on
     <View style={{ flex: 1 }}>
       <TextInput 
         style={styles.searchBar} 
-        placeholder="🔍 Search words or dictionary meanings..." 
+        placeholder="🔍 Search idioms, expressions, or meanings..." 
         value={searchQuery}
         onChangeText={onSearch}
       />
@@ -41,11 +41,11 @@ export default function VocabularyView({ loading, searchQuery, filteredVocab, on
         <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
-          data={filteredVocab}
+          data={filteredPhrases}
           keyExtractor={(item) => item.id}
-          renderItem={renderWordCard}
+          renderItem={renderPhraseCard}
           contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={<Text style={styles.emptyText}>No vocabulary terms match.</Text>}
+          ListEmptyComponent={<Text style={styles.emptyText}>No phrases match your search.</Text>}
         />
       )}
     </View>
