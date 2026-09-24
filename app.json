@@ -1,24 +1,33 @@
 {
   "expo": {
-    "name": "english-learning-mobile-app",
+    "name": "English Learning Mobile App",
     "slug": "english-learning-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/mobile_app_icon.jpeg",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/mobile_app_icon.jpeg",
+      "resizeMode": "contain",
+      "backgroundColor": "#f8f9fa"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.b1b2.englishlearningapp",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/mobile_app_icon.jpeg",
+        "backgroundColor": "#f8f9fa"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/mobile_app_icon.jpeg"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "eba5c36b-1ea2-4b26-a57d-23a43719de4b"
+      }
     }
   }
 }
